@@ -82,10 +82,8 @@ trait Huffman extends HuffmanInterface {
         case Nil => myMap
         case x :: xs => if (myMap contains (x)) (myMap += (x -> (myMap(x) + 1))) ++ timesAux(xs)
         else (myMap += (x -> 1)) ++ timesAux(xs)
-
       }
     }
-
     timesAux(chars)
     myMap.toList
   }
@@ -104,14 +102,15 @@ trait Huffman extends HuffmanInterface {
         case (x, y) :: xs => Leaf(x, y) :: makeOrderedLeafList(xs)
       }
     }
-
     makeLeafList(freqs).sortBy(leafEle => leafEle.weight)
   }
 
   /**
    * Checks whether the list `trees` contains only one single code tree.
    */
-  def singleton(trees: List[CodeTree]): Boolean = ???
+  def singleton(trees: List[CodeTree]): Boolean = {
+    if (trees.length == 1) true else false
+  }
 
   /**
    * The parameter `trees` of this function is a list of code trees ordered
@@ -126,18 +125,14 @@ trait Huffman extends HuffmanInterface {
    * unchanged.
    */
   def combine(trees: List[CodeTree]): List[CodeTree] = {
-
     def combineHelper(treelist: List[CodeTree]): List[CodeTree] = {
       var result = List[CodeTree]()
-
       def sorted(mixedList: List[CodeTree]): List[CodeTree] = {
         mixedList.sortBy(ele => ele match {
           case Fork(left, right, chars, weight) => weight
           case Leaf(char, weight) => weight
         })
-
       }
-
       def createFork(left: CodeTree, right: CodeTree): CodeTree = {
         left match {
           case Leaf(x, y) => right match {
@@ -148,9 +143,7 @@ trait Huffman extends HuffmanInterface {
             case Leaf(a, b) => Fork(createFork(l, r), Leaf(a, b), a :: lst, b + w)
             case Fork(e, f, g, h) => Fork(createFork(l, r), createFork(e, f), lst ::: g, w + h)
           }
-
         }
-
       }
 
       treelist match {
@@ -165,7 +158,7 @@ trait Huffman extends HuffmanInterface {
       }
     }
 
-    if (trees.length == 1) trees else combineHelper(trees)
+    combineHelper(trees)
   }
 
   /**
@@ -179,7 +172,9 @@ trait Huffman extends HuffmanInterface {
    * In such an invocation, `until` should call the two functions until the list of
    * code trees contains only one single tree, and then return that singleton list.
    */
-  def until(done: List[CodeTree] => Boolean, merge: List[CodeTree] => List[CodeTree])(trees: List[CodeTree]): List[CodeTree] = ???
+  def until(done: List[CodeTree] => Boolean, merge: List[CodeTree] => List[CodeTree])(trees: List[CodeTree]): List[CodeTree] = {
+    if (done(trees)) trees else merge(trees)
+  }
 
   /**
    * This function creates a code tree which is optimal to encode the text `chars`.
@@ -187,7 +182,9 @@ trait Huffman extends HuffmanInterface {
    * The parameter `chars` is an arbitrary text. This function extracts the character
    * frequencies from that text and creates a code tree based on them.
    */
-  def createCodeTree(chars: List[Char]): CodeTree = ???
+  def createCodeTree(chars: List[Char]): CodeTree = {
+    until(singleton, combine)(makeOrderedLeafList(times(chars))).head
+  }
 
 
   // Part 3: Decoding
