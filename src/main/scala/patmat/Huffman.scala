@@ -1,6 +1,7 @@
 package patmat
 
-import scala.collection.mutable.Map
+import scala.collection.mutable
+
 
 /**
  * A huffman code is represented by a binary tree.
@@ -35,7 +36,7 @@ trait Huffman extends HuffmanInterface {
     case Leaf(char, _) => char :: List()
   }
 
-  def makeCodeTree(left: CodeTree, right: CodeTree) =
+  def makeCodeTree(left: CodeTree, right: CodeTree): Fork =
     Fork(left, right, chars(left) ::: chars(right), weight(left) + weight(right))
 
   // Part 2: Generating Huffman trees
@@ -75,12 +76,12 @@ trait Huffman extends HuffmanInterface {
    * }
    */
   def times(chars: List[Char]): List[(Char, Int)] = {
-    val myMap: Map[Char, Int] = Map.empty[Char, Int]
+    val myMap: mutable.Map[Char, Int] = mutable.Map.empty[Char, Int]
 
-    def timesAux(input: List[Char]): Map[Char, Int] = {
+    def timesAux(input: List[Char]): mutable.Map[Char, Int] = {
       input match {
         case Nil => myMap
-        case x :: xs => if (myMap contains (x)) (myMap += (x -> (myMap(x) + 1))) ++ timesAux(xs)
+        case x :: xs => if (myMap contains x) (myMap += (x -> (myMap(x) + 1))) ++ timesAux(xs)
         else (myMap += (x -> 1)) ++ timesAux(xs)
       }
     }
@@ -125,13 +126,14 @@ trait Huffman extends HuffmanInterface {
    * unchanged.
    */
   def combine(trees: List[CodeTree]): List[CodeTree] = {
+    @scala.annotation.tailrec
     def combineHelper(treelist: List[CodeTree]): List[CodeTree] = {
-      var result = List[CodeTree]()
+      val result = List[CodeTree]()
       def sorted(mixedList: List[CodeTree]): List[CodeTree] = {
-        mixedList.sortBy(ele => ele match {
-          case Fork(left, right, chars, weight) => weight
-          case Leaf(char, weight) => weight
-        })
+        mixedList.sortBy {
+          case Fork(_, _, _, weight) => weight
+          case Leaf(_, weight) => weight
+        }
       }
       def createFork(left: CodeTree, right: CodeTree): CodeTree = {
         left match {
@@ -195,7 +197,20 @@ trait Huffman extends HuffmanInterface {
    * This function decodes the bit sequence `bits` using the code tree `tree` and returns
    * the resulting list of characters.
    */
-  def decode(tree: CodeTree, bits: List[Bit]): List[Char] = ???
+  def decode(tree: CodeTree, bits: List[Bit]): List[Char] = {
+    def decodehelper(subtree: CodeTree, bits: List[Bit]): List[Char] = {
+      subtree match {
+        case Leaf(c, _) if (bits.isEmpty) => List(c)
+        case Leaf(c, _) => c :: decodehelper(tree, bits)
+        case Fork(l, _, _, _) if (bits.head == 0) => decodehelper(l, bits.tail)
+        case Fork(_, r, _, _) => decodehelper(r, bits.tail)
+      }
+
+    }
+
+    decodehelper(tree, bits)
+  }
+
 
   /**
    * A Huffman coding tree for the French language.
@@ -213,7 +228,9 @@ trait Huffman extends HuffmanInterface {
   /**
    * Write a function that returns the decoded secret
    */
-  def decodedSecret: List[Char] = ???
+  def decodedSecret: List[Char] = {
+    decode(frenchCode, secret)
+  }
 
 
   // Part 4a: Encoding using Huffman tree
