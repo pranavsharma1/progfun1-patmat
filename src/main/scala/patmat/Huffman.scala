@@ -276,7 +276,24 @@ trait Huffman extends HuffmanInterface {
    * This function returns the bit sequence that represents the character `char` in
    * the code table `table`.
    */
-  def codeBits(table: CodeTable)(char: Char): List[Bit] = ???
+  def codeBits(table: CodeTable)(char: Char): List[Bit] = {
+    @scala.annotation.tailrec
+    val result = List[Bit]()
+
+    def codeBitsHelper(table: CodeTable)(char: Char): List[Bit] = {
+      if (table.nonEmpty) {
+        table.head match {
+          case (c, l) => if (c == char) l else codeBitsHelper(table.tail)(char)
+        }
+
+      }
+      else {
+        result
+      }
+    }
+
+    codeBitsHelper(table)(char)
+  }
 
   /**
    * Given a code tree, create a code table which contains, for every character in the
