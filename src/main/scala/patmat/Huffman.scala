@@ -361,5 +361,6 @@ trait Huffman extends HuffmanInterface {
 
     quickEncodeHelper(tree)(text)
   }
+}
 
 object Huffman extends Huffman
