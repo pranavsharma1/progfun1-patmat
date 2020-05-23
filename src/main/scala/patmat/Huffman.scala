@@ -303,7 +303,27 @@ trait Huffman extends HuffmanInterface {
    * a valid code tree that can be represented as a code table. Using the code tables of the
    * sub-trees, think of how to build the code table for the entire tree.
    */
-  def convert(tree: CodeTree): CodeTable = ???
+  def convert(tree: CodeTree): CodeTable = {
+    def convertHelper(tree: CodeTree): CodeTable = {
+      val charList = chars(tree)
+      val result = List[(Char, List[Bit])]()
+
+      def listTraverse(ls: List[Char]): List[(Char, List[Bit])] = {
+        if (ls.nonEmpty) {
+          ls.head match {
+            case l => (l, encode(tree)(List(l))) :: listTraverse(ls.tail) ::: result
+          }
+        }
+        else {
+          result
+        }
+      }
+
+      listTraverse(charList)
+    }
+
+    convertHelper(tree)
+  }
 
   /**
    * This function takes two code tables and merges them into one. Depending on how you
